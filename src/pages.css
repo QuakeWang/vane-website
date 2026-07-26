@@ -778,6 +778,14 @@ main[class*="docMainContainer"] .pager .nx {
     padding: 0 !important;
   }
 
+  main[class*="docMainContainer"] .docs-data-row {
+    margin: 0;
+  }
+
+  main[class*="docMainContainer"] .docs-data-row > .col {
+    padding: 0;
+  }
+
   main[class*="docMainContainer"] .doc {
     padding: 30px 22px 80px;
   }
