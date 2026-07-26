@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import {translate} from '@docusaurus/Translate'
 import {ThemeClassNames} from '@docusaurus/theme-common'
+import type {PropSidebar} from '@docusaurus/plugin-content-docs'
 import OriginalContent from '@theme-original/DocSidebar/Desktop/Content'
 import DocSidebarItems from '@theme/DocSidebarItems'
 import ProductGlyph from '../../../../docs/ProductGlyph'
@@ -9,7 +10,7 @@ import { PRODUCTS } from '../../../../docs/products'
 type DocSidebarDesktopContentProps = {
   className?: string
   path: string
-  sidebar: unknown[]
+  sidebar: PropSidebar
 }
 
 export default function DocSidebarDesktopContent({

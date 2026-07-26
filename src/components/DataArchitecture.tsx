@@ -1,11 +1,14 @@
+import { useEffect, useRef } from 'react'
 import Box from './Box'
 import { pickLocale, useSiteLocale } from '../siteI18n'
 
 /* Vane Data overview: multimodal inputs -> the Vane Data engine -> model-ready
    outputs, over the shared Vane Core runtime panel. A Data-scoped companion to
    PlatformArchitecture; it reuses the same card anatomy and the `.pa-core`
-   panel (identical content), and reflows to a vertical stack in the narrow
-   docs column. */
+   panel (identical content), and scales as one horizontal composition in a
+   narrow docs column. */
+
+const DATA_ARCH_DESIGN_WIDTH = 760
 
 type IconName =
   | 'sensors'
@@ -367,6 +370,9 @@ function DataMesh() {
 
 export default function DataArchitecture() {
   const locale = useSiteLocale()
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
   const copy = pickLocale(
     locale,
     {
@@ -383,80 +389,127 @@ export default function DataArchitecture() {
     },
   )
 
+  useEffect(() => {
+    const viewport = viewportRef.current
+    const stage = stageRef.current
+    const canvas = canvasRef.current
+    if (!viewport || !stage || !canvas) return
+
+    let frameId: number | null = null
+    const syncScale = () => {
+      if (frameId !== null) cancelAnimationFrame(frameId)
+      frameId = requestAnimationFrame(() => {
+        frameId = null
+        if (viewport.clientWidth >= DATA_ARCH_DESIGN_WIDTH) {
+          viewport.style.removeProperty('--da-scale')
+          stage.style.removeProperty('height')
+          return
+        }
+
+        const scale = viewport.clientWidth / DATA_ARCH_DESIGN_WIDTH
+        const scaleValue = String(scale)
+        const height = Math.ceil(canvas.offsetHeight * scale * window.devicePixelRatio) / window.devicePixelRatio
+        const heightValue = `${height}px`
+
+        if (viewport.style.getPropertyValue('--da-scale') !== scaleValue) {
+          viewport.style.setProperty('--da-scale', scaleValue)
+        }
+        if (stage.style.height !== heightValue) stage.style.height = heightValue
+      })
+    }
+
+    const observer = new ResizeObserver(syncScale)
+    observer.observe(canvas)
+    window.addEventListener('resize', syncScale)
+    syncScale()
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', syncScale)
+      if (frameId !== null) cancelAnimationFrame(frameId)
+    }
+  }, [locale])
+
   return (
     <Box className="data-arch">
-      <div className="da-labels">
-        <span className="da-label">{copy.inputs}</span>
-        <span className="da-label da-label-end">{copy.outputs}</span>
-      </div>
-
-      <div className="da-flow">
-        <div className="da-io da-inputs">
-          {INPUTS.map((item) => (
-            <div className="da-io-card" key={item.label}>
-              <span className="da-io-ic"><Icon name={item.icon} /></span>
-              <span className="da-io-label">{pickLocale(locale, item.label, item.labelZh)}</span>
+      <div className="data-arch-viewport" ref={viewportRef}>
+        <div className="data-arch-stage" ref={stageRef}>
+          <div className="data-arch-canvas" ref={canvasRef}>
+            <div className="da-labels">
+              <span className="da-label">{copy.inputs}</span>
+              <span className="da-label da-label-end">{copy.outputs}</span>
             </div>
-          ))}
-        </div>
 
-        <div className="da-arrow" aria-hidden="true">→</div>
+            <div className="da-flow">
+              <div className="da-io da-inputs">
+                {INPUTS.map((item) => (
+                  <div className="da-io-card" key={item.label}>
+                    <span className="da-io-ic"><Icon name={item.icon} /></span>
+                    <span className="da-io-label">{pickLocale(locale, item.label, item.labelZh)}</span>
+                  </div>
+                ))}
+              </div>
 
-        <div className="da-engine">
-          <h3 className="da-engine-name">Vane Data</h3>
-          <div className="da-engine-panel">
-            <div className="da-engine-body">
-              <DataMesh />
-              <div className="da-caps">
-                {CAPABILITIES.map((cap) => (
-                  <div className="da-cap" key={cap.title}>
-                    <span className="da-cap-ic"><Icon name={cap.icon} /></span>
-                    <span className="da-cap-title">{pickLocale(locale, cap.title, cap.titleZh)}</span>
-                    <CapabilityArt name={cap.art} />
+              <div className="da-arrow" aria-hidden="true">→</div>
+
+              <div className="da-engine">
+                <h3 className="da-engine-name">Vane Data</h3>
+                <div className="da-engine-panel">
+                  <div className="da-engine-body">
+                    <DataMesh />
+                    <div className="da-caps">
+                      {CAPABILITIES.map((cap) => (
+                        <div className="da-cap" key={cap.title}>
+                          <span className="da-cap-ic"><Icon name={cap.icon} /></span>
+                          <span className="da-cap-title">{pickLocale(locale, cap.title, cap.titleZh)}</span>
+                          <CapabilityArt name={cap.art} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="da-stages">
+                    {STAGES.map((stage) => (
+                      <span key={stage.label}>{pickLocale(locale, stage.label, stage.labelZh)}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="da-arrow" aria-hidden="true">→</div>
+
+              <div className="da-io da-outputs">
+                {OUTPUTS.map((item) => (
+                  <div className="da-io-card" key={item.label}>
+                    <span className="da-io-ic"><Icon name={item.icon} /></span>
+                    <span className="da-io-label">{pickLocale(locale, item.label, item.labelZh)}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="da-stages">
-              {STAGES.map((stage) => (
-                <span key={stage.label}>{pickLocale(locale, stage.label, stage.labelZh)}</span>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        <div className="da-arrow" aria-hidden="true">→</div>
-
-        <div className="da-io da-outputs">
-          {OUTPUTS.map((item) => (
-            <div className="da-io-card" key={item.label}>
-              <span className="da-io-ic"><Icon name={item.icon} /></span>
-              <span className="da-io-label">{pickLocale(locale, item.label, item.labelZh)}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="pa-core">
-        <div className="pa-core-head">
-          <h3>Vane Core</h3>
-          <div className="pa-runtime-pills">
-            <span><Icon name="local" />{copy.local}</span>
-            <b>+</b>
-            <span><Icon name="ray" />{copy.ray}</span>
-          </div>
-        </div>
-
-        <div className="pa-core-features">
-          {CORE_FEATURES.map((feature) => (
-            <div className="pa-core-feature" key={feature.title}>
-              <div className="pa-core-feature-head">
-                <span className="pa-core-icon"><Icon name={feature.icon} /></span>
-                <h4>{pickLocale(locale, feature.title, feature.titleZh)}</h4>
+            <div className="pa-core">
+              <div className="pa-core-head">
+                <h3>Vane Core</h3>
+                <div className="pa-runtime-pills">
+                  <span><Icon name="local" />{copy.local}</span>
+                  <b>+</b>
+                  <span><Icon name="ray" />{copy.ray}</span>
+                </div>
               </div>
-              <p>{pickLocale(locale, feature.copy, feature.copyZh)}</p>
+
+              <div className="pa-core-features">
+                {CORE_FEATURES.map((feature) => (
+                  <div className="pa-core-feature" key={feature.title}>
+                    <div className="pa-core-feature-head">
+                      <span className="pa-core-icon"><Icon name={feature.icon} /></span>
+                      <h4>{pickLocale(locale, feature.title, feature.titleZh)}</h4>
+                    </div>
+                    <p>{pickLocale(locale, feature.copy, feature.copyZh)}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </Box>

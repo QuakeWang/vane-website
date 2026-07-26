@@ -58,12 +58,20 @@ declare module '@theme/DocItem/TOC/Desktop' {
 
 declare module '@theme/DocSidebarItems' {
   import type {ReactNode} from 'react'
+  import type {PropSidebar, PropSidebarItem} from '@docusaurus/plugin-content-docs'
 
   export default function DocSidebarItems(props: {
     activePath: string
-    items: unknown[]
+    items: PropSidebar
     level: number
+    onItemClick?: (item: PropSidebarItem) => void
   }): ReactNode
+}
+
+declare module '@theme/Icon/Close' {
+  import type {ComponentProps, ReactNode} from 'react'
+
+  export default function IconClose(props: ComponentProps<'svg'>): ReactNode
 }
 
 declare module '@theme/DocVersionBadge' {

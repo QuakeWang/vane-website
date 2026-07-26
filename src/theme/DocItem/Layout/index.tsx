@@ -1,7 +1,8 @@
 import clsx from 'clsx'
 import type {ReactNode} from 'react'
 import {useWindowSize} from '@docusaurus/theme-common'
-import {useDoc} from '@docusaurus/plugin-content-docs/client'
+import {useDoc, useDocsSidebar} from '@docusaurus/plugin-content-docs/client'
+import {useLocation} from '@docusaurus/router'
 import ContentVisibility from '@theme/ContentVisibility'
 import DocBreadcrumbs from '@theme/DocBreadcrumbs'
 import DocItemContent from '@theme/DocItem/Content'
@@ -10,6 +11,7 @@ import DocItemPaginator from '@theme/DocItem/Paginator'
 import DocItemTOCDesktop from '@theme/DocItem/TOC/Desktop'
 import DocVersionBadge from '@theme/DocVersionBadge'
 import DocVersionBanner from '@theme/DocVersionBanner'
+import DocsMobileNavigation from '../../../components/DocsMobileNavigation'
 
 function useDocTOC() {
   const {frontMatter, toc} = useDoc()
@@ -26,9 +28,12 @@ function useDocTOC() {
 export default function DocItemLayout({children}: {children: ReactNode}) {
   const docTOC = useDocTOC()
   const {metadata} = useDoc()
+  const sidebar = useDocsSidebar()
+  const {pathname} = useLocation()
 
   return (
     <div className="row docs-data-row">
+      {sidebar && <DocsMobileNavigation key={pathname} path={pathname} sidebar={sidebar.items} />}
       <div className={clsx('col', !docTOC.hidden && 'docs-data-doc-col')}>
         <ContentVisibility metadata={metadata} />
         <DocVersionBanner />

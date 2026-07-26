@@ -745,6 +745,15 @@ main[class*="docMainContainer"] .pager .nx {
   font-weight: 700;
 }
 
+.docs-mobile-nav-overlay {
+  display: none;
+}
+
+html.docs-mobile-nav-open,
+html.docs-mobile-nav-open body {
+  overflow: hidden;
+}
+
 @media (max-width: 1080px) and (min-width: 997px) {
   .theme-doc-sidebar-container[class*="docSidebarContainer"] {
     --doc-sidebar-width: 240px;
@@ -765,6 +774,75 @@ main[class*="docMainContainer"] .pager .nx {
 }
 
 @media (max-width: 996px) {
+  .docs-mobile-nav-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: block;
+    background: rgba(21,23,30,0.3);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    animation: docsMobileOverlayIn 0.16s ease both;
+  }
+
+  .docs-mobile-nav-drawer {
+    width: min(88vw, 340px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: var(--ink);
+    background: var(--paper);
+    border-right: 1.5px solid var(--line);
+    box-shadow: 14px 0 0 -8px rgba(21,23,30,0.14);
+    animation: docsMobileDrawerIn 0.18s ease both;
+  }
+
+  .docs-mobile-nav-header {
+    flex: none;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 14px 10px 20px;
+    border-bottom: 1.5px solid var(--line);
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .docs-mobile-nav-close {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: var(--ink);
+    background: var(--paper-2);
+    border: 1.5px solid var(--line);
+    border-radius: var(--r);
+    cursor: pointer;
+  }
+
+  .docs-mobile-nav-close:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .docs-mobile-nav-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .docs-mobile-nav-drawer .docs-data-menu {
+    padding: 18px 16px 40px;
+  }
+
   .theme-doc-sidebar-container[class*="docSidebarContainer"] {
     display: none;
   }
@@ -798,6 +876,16 @@ main[class*="docMainContainer"] .pager .nx {
   main[class*="docMainContainer"] .doc-updated {
     text-align: left;
   }
+}
+
+@keyframes docsMobileOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes docsMobileDrawerIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
 }
 
 /* ---- Docs product layer (Data / Agent / RL) ---- */

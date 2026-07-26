@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import Box from './Box'
 import { pickLocale, useSiteLocale } from '../siteI18n'
 
@@ -5,6 +6,8 @@ import { pickLocale, useSiteLocale } from '../siteI18n'
    returning to Data, over the shared Vane Core runtime panel. */
 
 type Tone = 'data' | 'rl' | 'agent'
+
+const PLATFORM_ARCH_DESIGN_WIDTH = 1132
 
 type IconName =
   | 'picture'
@@ -375,6 +378,9 @@ function PillarArt({ tone }: { tone: Tone }) {
 
 export default function PlatformArchitecture() {
   const locale = useSiteLocale()
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
   const copy = pickLocale(
     locale,
     {
@@ -399,78 +405,125 @@ export default function PlatformArchitecture() {
     },
   )
 
-  return (
-    <Box className="platform-arch">
-      <div className="pa-arcs" aria-hidden="true">
-        <div className="pa-arc pa-tone-data pa-arc-data">
-          <span>{copy.curated}</span>
-        </div>
-        <div className="pa-arc pa-tone-rl pa-arc-rl">
-          <span>{copy.policies}</span>
-        </div>
-      </div>
+  useEffect(() => {
+    const viewport = viewportRef.current
+    const stage = stageRef.current
+    const canvas = canvasRef.current
+    if (!viewport || !stage || !canvas) return
 
-      <div className="pa-pillars">
-        {PILLARS.map((pillar) => (
-          <div className={`pa-pillar pa-tone-${pillar.tone}`} key={pillar.name}>
-            <span className={`status-pill ${pillar.status === 'Available now' ? 'available' : 'soon'} pa-pillar-status`}>
-              {pickLocale(locale, pillar.status, pillar.statusZh)}
-            </span>
-            <span className="pa-pillar-icon"><PillarIcon tone={pillar.tone} /></span>
-            <div className="pa-pillar-name">
-              <b>{pillar.number}</b>
-              <h4>{pillar.name}</h4>
+    let frameId: number | null = null
+    const syncScale = () => {
+      if (frameId !== null) cancelAnimationFrame(frameId)
+      frameId = requestAnimationFrame(() => {
+        frameId = null
+        if (viewport.clientWidth >= PLATFORM_ARCH_DESIGN_WIDTH) {
+          viewport.style.removeProperty('--pa-scale')
+          stage.style.removeProperty('height')
+          return
+        }
+
+        const scale = viewport.clientWidth / PLATFORM_ARCH_DESIGN_WIDTH
+        const scaleValue = String(scale)
+        const height = Math.ceil(canvas.offsetHeight * scale * window.devicePixelRatio) / window.devicePixelRatio
+        const heightValue = `${height}px`
+
+        if (viewport.style.getPropertyValue('--pa-scale') !== scaleValue) {
+          viewport.style.setProperty('--pa-scale', scaleValue)
+        }
+        if (stage.style.height !== heightValue) stage.style.height = heightValue
+      })
+    }
+
+    const observer = new ResizeObserver(syncScale)
+    observer.observe(canvas)
+    window.addEventListener('resize', syncScale)
+    syncScale()
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', syncScale)
+      if (frameId !== null) cancelAnimationFrame(frameId)
+    }
+  }, [locale])
+
+  return (
+    <div className="platform-arch-viewport" ref={viewportRef}>
+      <div className="platform-arch-stage" ref={stageRef}>
+        <div className="platform-arch-canvas" ref={canvasRef}>
+          <Box className="platform-arch">
+            <div className="pa-arcs" aria-hidden="true">
+              <div className="pa-arc pa-tone-data pa-arc-data">
+                <span>{copy.curated}</span>
+              </div>
+              <div className="pa-arc pa-tone-rl pa-arc-rl">
+                <span>{copy.policies}</span>
+              </div>
             </div>
-            <p className="pa-pillar-tagline">{pickLocale(locale, pillar.tagline, pillar.taglineZh)}</p>
-            <div className="pa-pillar-divider" />
-            <div className="pa-chips">
-              {pickLocale(locale, pillar.chips, pillar.chipsZh).map((chip) => (
-                <span key={chip}>{chip}</span>
+
+            <div className="pa-pillars">
+              {PILLARS.map((pillar) => (
+                <div className={`pa-pillar pa-tone-${pillar.tone}`} key={pillar.name}>
+                  <span className={`status-pill ${pillar.status === 'Available now' ? 'available' : 'soon'} pa-pillar-status`}>
+                    {pickLocale(locale, pillar.status, pillar.statusZh)}
+                  </span>
+                  <span className="pa-pillar-icon"><PillarIcon tone={pillar.tone} /></span>
+                  <div className="pa-pillar-name">
+                    <b>{pillar.number}</b>
+                    <h4>{pillar.name}</h4>
+                  </div>
+                  <p className="pa-pillar-tagline">{pickLocale(locale, pillar.tagline, pillar.taglineZh)}</p>
+                  <div className="pa-pillar-divider" />
+                  <div className="pa-chips">
+                    {pickLocale(locale, pillar.chips, pillar.chipsZh).map((chip) => (
+                      <span key={chip}>{chip}</span>
+                    ))}
+                  </div>
+                  <PillarArt tone={pillar.tone} />
+                </div>
               ))}
             </div>
-            <PillarArt tone={pillar.tone} />
-          </div>
-        ))}
-      </div>
 
-      <div className="pa-return">
-        <div className="pa-return-path pa-tone-data pa-return-data" aria-hidden="true">
-          <span>{copy.feedback}</span>
-        </div>
-        <div className="pa-feedback">
-          <span className="pa-feedback-ico"><MiniIcon name="loop" /></span>
-          <div>
-            <h4>{copy.feedbackTitle}</h4>
-            <p>{copy.feedbackCopy}</p>
-          </div>
-        </div>
-        <div className="pa-return-path pa-tone-agent pa-return-agent" aria-hidden="true">
-          <span>{copy.outcomes}</span>
-        </div>
-      </div>
-
-      <div className="pa-core">
-        <div className="pa-core-head">
-          <h3>Vane Core</h3>
-          <div className="pa-runtime-pills">
-            <span><MiniIcon name="local" />{copy.local}</span>
-            <b>+</b>
-            <span><MiniIcon name="ray" />{copy.ray}</span>
-          </div>
-        </div>
-
-        <div className="pa-core-features">
-          {CORE_FEATURES.map((feature) => (
-            <div className="pa-core-feature" key={feature.title}>
-              <div className="pa-core-feature-head">
-                <span className="pa-core-icon"><MiniIcon name={feature.icon} /></span>
-                <h4>{pickLocale(locale, feature.title, feature.titleZh)}</h4>
+            <div className="pa-return">
+              <div className="pa-return-path pa-tone-data pa-return-data" aria-hidden="true">
+                <span>{copy.feedback}</span>
               </div>
-              <p>{pickLocale(locale, feature.copy, feature.copyZh)}</p>
+              <div className="pa-feedback">
+                <span className="pa-feedback-ico"><MiniIcon name="loop" /></span>
+                <div>
+                  <h4>{copy.feedbackTitle}</h4>
+                  <p>{copy.feedbackCopy}</p>
+                </div>
+              </div>
+              <div className="pa-return-path pa-tone-agent pa-return-agent" aria-hidden="true">
+                <span>{copy.outcomes}</span>
+              </div>
             </div>
-          ))}
+
+            <div className="pa-core">
+              <div className="pa-core-head">
+                <h3>Vane Core</h3>
+                <div className="pa-runtime-pills">
+                  <span><MiniIcon name="local" />{copy.local}</span>
+                  <b>+</b>
+                  <span><MiniIcon name="ray" />{copy.ray}</span>
+                </div>
+              </div>
+
+              <div className="pa-core-features">
+                {CORE_FEATURES.map((feature) => (
+                  <div className="pa-core-feature" key={feature.title}>
+                    <div className="pa-core-feature-head">
+                      <span className="pa-core-icon"><MiniIcon name={feature.icon} /></span>
+                      <h4>{pickLocale(locale, feature.title, feature.titleZh)}</h4>
+                    </div>
+                    <p>{pickLocale(locale, feature.copy, feature.copyZh)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Box>
         </div>
       </div>
-    </Box>
+    </div>
   )
 }

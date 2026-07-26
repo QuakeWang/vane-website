@@ -186,6 +186,24 @@ header.nav.navbar { display: block; height: auto; padding: 0; box-shadow: none; 
 .nav-search .si { font-size: 14px; }
 .nav-search .kbd { font-size: 10.5px; color: var(--ink-3); border: 1.5px solid var(--line-2); border-radius: 3px; padding: 1px 6px; }
 @media (max-width: 980px){ .nav-search .sl { display: none; } .nav-search { min-width: 0; } }
+.nav-docs-menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.nav-docs-menu:hover { background: var(--ink); color: var(--paper); }
+.nav-docs-menu svg { stroke: currentColor; stroke-width: 1.25; }
+@media (max-width: 996px) {
+  .nav-docs-menu { display: inline-flex; }
+}
 /* ⌘K command palette (docs search) */
 .cmdk-overlay { position: fixed; inset: 0; z-index: 100; display: flex; justify-content: center; align-items: flex-start; padding: 12vh 20px 20px; background: rgba(21,23,30,0.28); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
 .cmdk { width: min(560px, 100%); max-height: 80vh; display: flex; flex-direction: column; background: var(--paper-2); border: 1.5px solid var(--line); border-radius: var(--r); box-shadow: 0 16px 0 -8px rgba(21,23,30,0.12); overflow: hidden; animation: mmIn 0.16s ease both; }
@@ -408,6 +426,12 @@ pre.code { margin: 0; padding: 15px 16px; font-family: var(--font-mono); font-si
   padding: 30px 30px 26px;
   overflow: hidden;
 }
+.platform-arch-viewport {
+  width: 100%;
+  container: platform-arch-viewport / inline-size;
+}
+.platform-arch-stage,
+.platform-arch-canvas { width: 100%; }
 .pa-tone-data { --t: #3F7A4F; --t-strong: #2F6D45; --t-border: #A9C2AF; --t-chip-border: #BDD3C2; --t-chip-bg: #E7F0E9; }
 .pa-tone-rl { --t: #345E92; --t-strong: #2F5583; --t-border: #A4B8D1; --t-chip-border: #BFCDDF; --t-chip-bg: #E9EEF5; }
 .pa-tone-agent { --t: #B5612F; --t-strong: #A05526; --t-border: #D3B096; --t-chip-border: #DEC7B3; --t-chip-bg: #F5ECE3; }
@@ -719,20 +743,24 @@ pre.code { margin: 0; padding: 15px 16px; font-family: var(--font-mono); font-si
 /* ---- Vane Data architecture diagram (docs) ----
    2-col multimodal inputs -> the "Vane Data" engine -> 1-col outputs, over the
    shared .pa-core panel. The figure follows the docs media measure so images and
-   prose share the same reading rhythm; container queries switch the internals
-   between a compact stack and a horizontal diagram. */
+   prose share the same reading rhythm; a fixed inner design canvas preserves
+   the horizontal composition in narrow docs columns. */
 .data-arch {
   width: 100%;
   max-width: var(--docs-media-w, 1420px);
   margin: 18px 0 0;
   padding: 34px 34px 28px;
   overflow: hidden;
-  container-type: inline-size;
+  container: data-arch-shell / inline-size;
   background:
     radial-gradient(ellipse 70% 54% at 50% 38%, rgba(251,250,246,0.95), rgba(251,250,246,0.64) 60%, rgba(244,243,237,0.46)),
     var(--paper-2);
   border-color: #2A2D36;
 }
+.data-arch-viewport,
+.data-arch-stage,
+.data-arch-canvas { width: 100%; }
+.data-arch-canvas { container: data-arch-canvas / inline-size; }
 .data-arch::before { display: none; }
 .data-arch svg {
   fill: none;
@@ -763,7 +791,7 @@ pre.code { margin: 0; padding: 15px 16px; font-family: var(--font-mono); font-si
 .da-label::before { content: '●'; font-size: 6px; color: var(--ink-3); }
 .da-label-end { flex-direction: row-reverse; }
 
-/* base (narrow): vertical stack */
+/* Base fallback before the design canvas reaches its horizontal breakpoint. */
 .da-flow { display: flex; flex-direction: column; gap: 12px; max-width: 100%; margin-inline: auto; }
 .da-io { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; min-width: 0; }
 .da-io-card {
@@ -855,7 +883,7 @@ pre.code { margin: 0; padding: 15px 16px; font-family: var(--font-mono); font-si
 
 /* Medium docs column: keep the diagram horizontal without forcing a page-wide
    breakout. Side rails keep enough width for labels while the engine remains readable. */
-@container (min-width: 760px) {
+@container data-arch-canvas (min-width: 760px) {
   .da-flow { display: grid; grid-template-columns: minmax(180px, 0.65fr) 8px minmax(380px, 1.5fr) 8px minmax(158px, 0.58fr); align-items: stretch; gap: 5px; }
   .da-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 8px; align-content: stretch; }
   .da-outputs { display: flex; flex-direction: column; gap: 7px; }
@@ -903,7 +931,7 @@ pre.code { margin: 0; padding: 15px 16px; font-family: var(--font-mono); font-si
 
 /* Wide figure (mockup layout): 2-col inputs | engine | 1-col outputs, each
    capability illustration to the right of its 2-line title, mesh down the left. */
-@container (min-width: 1320px) {
+@container data-arch-canvas (min-width: 1320px) {
   .da-flow { display: grid; grid-template-columns: minmax(300px, 0.82fr) 30px minmax(600px, 1.7fr) 30px minmax(300px, 0.82fr); align-items: stretch; gap: 12px; }
   .da-inputs { align-self: start; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(4, 96px); grid-auto-rows: 96px; gap: 12px; align-content: start; }
   .da-outputs { align-self: start; display: flex; flex-direction: column; gap: 12px; }
@@ -3011,4 +3039,108 @@ footer.ft { border-top: 1.5px solid var(--line); background: var(--paper-2); mar
 }
 @media (max-width: 360px) {
   .enterprise-hero-art { --enterprise-context-scale: 0.5; }
+}
+
+/* Preserve the horizontal docs diagram below its 760px design width. The
+   inner canvas owns the existing medium container-query layout and scales as
+   one unit, so browser zoom and narrow screens cannot restack the flow. */
+@container data-arch-shell (width < 760px) {
+  .data-arch-stage {
+    position: relative;
+    aspect-ratio: 760 / 788;
+    overflow: hidden;
+  }
+  .data-arch-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 760px;
+    transform: scale(var(--da-scale, 0.8));
+    transform-origin: top left;
+  }
+  .data-arch-canvas .pa-core-head {
+    display: flex;
+    margin-bottom: 16px;
+  }
+  .data-arch-canvas .pa-runtime-pills {
+    margin-top: 0;
+    flex-wrap: nowrap;
+  }
+  .data-arch-canvas .pa-core-features {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .data-arch-canvas .pa-core-feature,
+  .data-arch-canvas .pa-core-feature:nth-child(odd) {
+    padding: 0 12px;
+    border-top: none;
+    border-left: 1px solid var(--line-2);
+  }
+  .data-arch-canvas .pa-core-feature:first-child {
+    padding-left: 0;
+    border-left: none;
+  }
+  .data-arch-canvas .pa-core-feature:last-child { padding-right: 0; }
+  .data-arch-canvas .pa-core-feature-head { min-height: 49px; }
+}
+
+/* Keep the platform diagram desktop-proportioned whenever its architecture
+   column is narrower than the design canvas, including browser zoom. */
+@container platform-arch-viewport (width < 1132px) {
+  .platform-arch-stage {
+    position: relative;
+    aspect-ratio: 1132 / 867;
+    overflow: hidden;
+  }
+  .platform-arch-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1132px;
+    transform: scale(var(--pa-scale, 0.75));
+    transform-origin: top left;
+  }
+  .platform-arch { padding: 30px 30px 26px; }
+  .platform-arch .pa-arcs,
+  .platform-arch .pa-return-path { display: block; }
+  .platform-arch .pa-pillars { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .platform-arch .pa-return { height: 122px; }
+  .platform-arch .pa-feedback {
+    position: absolute;
+    left: calc(33.3333% + 6px);
+    top: 10px;
+    width: calc(33.3333% - 12px);
+    margin-top: 0;
+  }
+  .platform-arch .pa-core-head {
+    display: flex;
+    margin-bottom: 20px;
+  }
+  .platform-arch .pa-runtime-pills {
+    margin-top: 0;
+    flex-wrap: nowrap;
+  }
+  .platform-arch .pa-core-features {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .platform-arch .pa-core-feature,
+  .platform-arch .pa-core-feature:nth-child(odd) {
+    padding: 0 20px;
+    border-top: none;
+    border-left: 1px solid var(--line-2);
+  }
+  .platform-arch .pa-core-feature:first-child {
+    padding-left: 0;
+    border-left: none;
+  }
+  .platform-arch .pa-core-feature:last-child { padding-right: 0; }
+}
+
+@media (max-width: 620px) {
+  .data-arch { padding: 18px 12px 14px; }
+  .architecture-section .platform-arch-viewport {
+    width: calc(100% + 24px);
+    margin-left: -12px;
+  }
 }
