@@ -32,3 +32,15 @@ test('mobile docs drawer preserves reading space and modal accessibility', () =>
   assert.match(pageStyles, /\.docs-mobile-nav-drawer\s*\{[^}]*width:\s*min\(88vw, 340px\);[^}]*height:\s*100%;/s)
   assert.match(pageStyles, /\.docs-mobile-nav-body\s*\{[^}]*overflow-y:\s*auto;/s)
 })
+
+test('mobile docs drawer releases state after leaving the mobile breakpoint', () => {
+  assert.match(navigationSource, /matchMedia\('\(max-width: 996px\)'\)/)
+  assert.match(navigationSource, /if \(!event\.matches\) setOpen\(false\)/)
+  assert.match(navigationSource, /mobileViewport\.addEventListener\('change', onViewportChange\)/)
+  assert.match(navigationSource, /mobileViewport\.removeEventListener\('change', onViewportChange\)/)
+})
+
+test('mobile docs focus trap excludes hidden and untabbable sidebar items', () => {
+  assert.match(navigationSource, /element\.tabIndex >= 0/)
+  assert.match(navigationSource, /element\.getClientRects\(\)\.length > 0/)
+})

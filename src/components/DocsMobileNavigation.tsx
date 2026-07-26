@@ -49,6 +49,7 @@ export default function DocsMobileNavigation({ path, sidebar }: DocsMobileNaviga
     if (!open) return undefined
 
     const returnFocus = returnFocusRef.current
+    const mobileViewport = window.matchMedia('(max-width: 996px)')
     document.documentElement.classList.add('docs-mobile-nav-open')
     const frameId = window.requestAnimationFrame(() => closeRef.current?.focus())
     const onKeyDown = (event: KeyboardEvent) => {
@@ -57,12 +58,17 @@ export default function DocsMobileNavigation({ path, sidebar }: DocsMobileNaviga
         setOpen(false)
       }
     }
+    const onViewportChange = (event: MediaQueryListEvent) => {
+      if (!event.matches) setOpen(false)
+    }
 
     document.addEventListener('keydown', onKeyDown)
+    mobileViewport.addEventListener('change', onViewportChange)
     return () => {
       window.cancelAnimationFrame(frameId)
       document.documentElement.classList.remove('docs-mobile-nav-open')
       document.removeEventListener('keydown', onKeyDown)
+      mobileViewport.removeEventListener('change', onViewportChange)
       returnFocus?.focus()
     }
   }, [open])
@@ -70,10 +76,12 @@ export default function DocsMobileNavigation({ path, sidebar }: DocsMobileNaviga
   const keepFocusInDrawer = (event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.key !== 'Tab') return
 
-    const focusable = drawerRef.current?.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    )
-    if (!focusable?.length) return
+    const focusable = Array.from(
+      drawerRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    ).filter((element) => element.tabIndex >= 0 && element.getClientRects().length > 0)
+    if (!focusable.length) return
 
     const first = focusable[0]
     const last = focusable[focusable.length - 1]
