@@ -127,6 +127,153 @@
 @media (max-width: 760px){ .contact-route-grid { grid-template-columns: 1fr; } .contact-route-card { min-height: 0; } }
 @media (max-width: 560px){ .contact-form-card { padding: 24px 20px; } .contact-form-grid { grid-template-columns: 1fr; gap: 0; } .contact-form-grid .contact-field + .contact-field { margin-top: 20px; } .contact-actions .btn, .contact-submit { width: 100%; justify-content: center; } }
 
+/* ---- Blog pages ---- */
+.blog-wrapper .container.margin-vert--lg {
+  width: 100%;
+  max-width: var(--wrap-max);
+  margin-top: 56px !important;
+  margin-bottom: 84px !important;
+  padding: 0 24px;
+}
+.blog-wrapper article > header > h1,
+.blog-wrapper article > header > h2 {
+  max-width: 980px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(34px, 4.6vw, 52px);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+}
+.blog-wrapper article > header > h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+.blog-wrapper article > header > h2 a:hover {
+  color: var(--accent-strong);
+}
+.blog-wrapper article > header > div {
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.blog-wrapper .markdown {
+  --docs-media-w: 100%;
+  --blog-prose-w: min(100%, 820px);
+  color: var(--ink-2);
+}
+.blog-wrapper .markdown > *:first-child { margin-top: 0; }
+.blog-wrapper .markdown h2.ds {
+  max-width: 920px;
+  margin: 44px 0 0;
+  padding-top: 12px;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  scroll-margin-top: 74px;
+}
+.blog-wrapper .markdown h3.dss {
+  max-width: 880px;
+  margin: 30px 0 0;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.35;
+  scroll-margin-top: 74px;
+}
+.blog-wrapper .markdown p {
+  max-width: var(--blog-prose-w);
+  margin: 14px 0 0;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.72;
+}
+.blog-wrapper .markdown p.blog-body-lead {
+  max-width: 900px;
+  margin-top: 18px;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.7;
+}
+.blog-wrapper .markdown a.dlink {
+  color: var(--accent);
+  text-decoration: none;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+.blog-wrapper .markdown a.dlink:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+.blog-wrapper .markdown ul.dl {
+  max-width: var(--blog-prose-w);
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.blog-wrapper .markdown ul.dl li {
+  position: relative;
+  padding: 7px 0 7px 22px;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.62;
+}
+.blog-wrapper .markdown ul.dl li::before {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  color: var(--ink-3);
+  content: "▸";
+}
+.blog-wrapper .markdown .dr {
+  width: 100%;
+  margin: 38px 0;
+  border: 0;
+  border-top: 1.5px solid var(--line-2);
+}
+.blog-wrapper .markdown .term {
+  width: 100%;
+  max-width: var(--docs-media-w);
+  margin: 22px 0 0;
+}
+.blog-wrapper .markdown .dimg {
+  display: block;
+  width: 100%;
+  max-width: var(--docs-media-w);
+  height: auto;
+  object-fit: contain;
+  margin: 22px 0 0;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r);
+  background: var(--paper-2);
+}
+.blog-wrapper .table-of-contents__link {
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.blog-wrapper .table-of-contents__link:hover,
+.blog-wrapper .table-of-contents__link--active {
+  color: var(--ink);
+}
+.blog-wrapper article > footer a,
+.blog-wrapper .pagination-nav__link {
+  color: var(--accent-strong);
+}
+@media (max-width: 996px) {
+  .blog-wrapper .container.margin-vert--lg { margin-top: 38px !important; }
+}
+@media (max-width: 576px) {
+  .blog-wrapper .container.margin-vert--lg {
+    margin-top: 30px !important;
+    margin-bottom: 64px !important;
+    padding: 0 20px;
+  }
+  .blog-wrapper article > header > h1,
+  .blog-wrapper article > header > h2 { font-size: 32px; }
+  .blog-wrapper .markdown h2.ds { font-size: 21px; }
+  .blog-wrapper .markdown p,
+  .blog-wrapper .markdown ul.dl li { font-size: 14.5px; }
+}
+
 /* ---- Docs page ---- */
 /* Docs use the familiar fixed-left-sidebar shape: navigation starts at the
    viewport edge while the article keeps its own readable measure. This mirrors

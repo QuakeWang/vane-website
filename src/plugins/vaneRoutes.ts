@@ -48,12 +48,6 @@ const vaneRoutesPlugin: PluginModule = (context) => {
       })
 
       addRoute({
-        path: routePath('/blog'),
-        component: '@site/src/pages/Blog.tsx',
-        exact: true,
-      })
-
-      addRoute({
         path: routePath('/contact'),
         component: '@site/src/pages/Contact.tsx',
         exact: true,

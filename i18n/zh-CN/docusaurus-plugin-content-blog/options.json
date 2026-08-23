@@ -1,0 +1,14 @@
+{
+  "title": {
+    "message": "Vane 技术博客",
+    "description": "The title for the blog used in SEO"
+  },
+  "description": {
+    "message": "来自 Vane 团队的工程文章、版本解析与实践记录。",
+    "description": "The description for the blog used in SEO"
+  },
+  "sidebar.title": {
+    "message": "近期文章",
+    "description": "The label for the left sidebar"
+  }
+}

@@ -1,5 +1,5 @@
-/* Maps MDX (Markdown) output onto the doc's existing styled markup so authored
-   content renders with the existing CSS classes.
+/* Maps MDX (Markdown) output onto the site's long-form markup so authored docs
+   and blog posts share the existing components and CSS classes.
 
    - Headings (h1/h2/h3) -> .dh/.ds/.dss. Pages set heading ids with explicit
      <h2 id> tags (the `{#id}` shorthand can't be used — it's MDX expression

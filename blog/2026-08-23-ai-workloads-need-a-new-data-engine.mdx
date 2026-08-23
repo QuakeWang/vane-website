@@ -1,0 +1,165 @@
+---
+slug: ai-workloads-need-a-new-data-engine
+title: AI workloads need a new data engine
+description: Why multimodal AI workloads need a data engine that coordinates relational processing, model inference, and heterogeneous resources.
+date: 2026-08-23
+image: /img/blog/ai-workloads-need-a-new-data-engine/vane-data-architecture-en.png
+---
+
+<p className="blog-body-lead">AI workloads are moving beyond querying tables toward understanding and acting on multimodal inputs. Agents depend on text, images, audio, video, and documents that must be parsed, filtered, and organized into queryable structures before their workflows can run reliably.</p>
+
+<!-- truncate -->
+
+## Traditional data stacks struggle with multimodal workflows
+
+Multimodal objects vary wildly in size: one row may be a few bytes or hundreds of megabytes. Model inference also requires CPU, GPU, network, and storage resources with mismatched throughput. A traditional stack combines a warehouse, Python preprocessing scripts, object storage, and a model service: the table engine handles structured data, scripts preprocess media, and another system runs inference. Data moves between systems, while batching, concurrency, retries, and memory limits are configured independently; the pipeline can spend its time queueing, idling, or hitting memory peaks.
+
+## Vane Data brings multimodal processing back to the data engine
+
+Vane Data is a multimodal-native data engine built on DuckDB. It keeps DuckDB's Relation API, treats text, images, and audio as columns, composes AI Functions and Python UDFs in the same relational query, and lets Providers such as vLLM execute inference. The results remain columns that can be filtered, joined, aggregated, and written out.
+
+---
+
+## Start with DuckDB, then build an AI data engine
+
+[DuckDB](https://duckdb.org/) is an embedded analytical database for querying local files, in-memory data, and object storage directly from an application or Python process. It is used for exploration, ETL, notebooks, and lightweight analytics.
+
+- **Lightweight embedding: start with one process.** DuckDB runs in-process with no external service dependencies. A single installation command gets you up and running locally for instant analytics. It works particularly well with local files and in-memory data, making it ideal for embedding data processing directly into applications, notebooks, and task scripts. It’s the SQLite of OLAP.
+- **Extreme performance for analytical workloads.** DuckDB combines columnar storage, vectorized execution, SIMD instruction-level parallelism, and multi-threaded scheduling into a highly efficient data pipeline, delivering analytical throughput of hundreds of millions of rows per second on a single machine. Its outstanding analytical performance is validated by [public ClickBench results](https://duckdb.org/2025/10/09/benchmark-results-14-lts).
+- **A rich, extensible ecosystem with on-demand loading.** DuckDB offers a flexible [extension mechanism](https://duckdb.org/docs/stable/extensions/overview) that allows users to define new data types, functions, file formats, and even custom SQL syntax. Data processing often involves multiple sources, and DuckDB can query Parquet, Iceberg, CSV, JSON, Arrow, and more; it can also read Python objects like Pandas and Polars DataFrames. Through its extension system, it connects to object storage, lakehouse formats, and external databases. Business records, files, and in-memory tables can be combined within a single query, reducing the need for intermediate files and format conversions.
+- **SQL and Python: expressive interfaces.** SQL is a compact way to express filtering, joins, and aggregations. The Python Relation API lets users compose the same plans step by step. Both are entry points into the same execution model.
+
+We are deeply impressed by DuckDB’s outstanding performance in the single-machine analytics space and sincerely appreciate its elegant design. Building an AI-native multimodal data engine on top of it offers inherent, compelling advantages. That is why we have built Vane Data, an AI-native multimodal data engine on DuckDB, designed to help users effortlessly build multimodal AI pipelines.
+
+---
+
+## Vane Data, the multimodal-native engine: coordinating data, models, and compute resources
+
+<img
+  className="dimg"
+  style={{ width: '100%', height: 'auto' }}
+  src="/img/blog/ai-workloads-need-a-new-data-engine/vane-data-architecture-en.png"
+  alt="Vane Data multimodal-native data engine architecture"
+  width="6035"
+  height="2678"
+  loading="lazy"
+  decoding="async"
+/>
+
+On top of DuckDB, Vane Data connects multimodal operators, AI calls, and resource scheduling into one Relation-based multimodal data pipeline. Familiar read, filter, aggregate, and export operations remain available. The next sections show how Prompt, Embedding, UDF, and vLLM stages fit into a Relation, then how those stages coordinate CPU, GPU, and I/O on one machine or across a cluster.
+
+### AI Functions, UDFs, and vLLM: building a multimodal data pipeline with Relation
+
+The key is to turn multimodal data such as images and audio into Relation columns that are as composable as text and tabular fields, allowing them to flow through a lazy execution plan. Vane Data provides three complementary pieces:
+
+- **AI Functions make model calls feel like column expressions.** `ai_prompt` and `ai_embed` work in SQL and through the Python API. `ai_prompt` accepts text or images and can return a `STRUCT`; `ai_embed` turns text into fixed-dimensional vectors. The results remain columns that can be filtered, joined, and aggregated, with `on_error`, retries, and Provider options available for control.
+- **Python UDFs bring custom logic into the plan.** `@vane.func` allows stateless processing logic to be defined as functions that can be called directly in SQL. `@vane.cls` defines stateful processing logic as functions, or callable classes, that can reuse resources such as models, clients, or decoders within an Actor. Both types of functions also provide a batch mode for processing data in bulk, which significantly improves performance.
+- **Vane's native vLLM Provider adds dataflow-oriented, prefix-aware routing to improve KV/prefix-cache reuse.** It places requests with shared prefixes into bounded buckets and tries to send them to the same vLLM Actor. When one Actor's in-flight load is materially higher, it rebalances without letting affinity block the entire pipeline.
+
+Prompt calls, embedding generation, and result filtering can be composed through the Relation API and executed as one complete plan when the result is finally read or written.
+
+### From one machine to a cluster: schedule CPU, GPU, and I/O together
+
+Writing multimodal operations into a data pipeline is only the first step. To make it run to completion reliably, the runtime must decide where work runs, how resources are allocated, and what happens when conditions fluctuate. Vane Data delegates these concerns to a unified runtime:
+
+- **Two Runners, one business pipeline.** Before creating the connection, use `vane.configure(runner="local")` to select the Local Runner. It fits development and small jobs; switch to `vane.configure(runner="ray")` to let the Ray Runner schedule multiple processes or nodes with CPU and GPU resources. The Relation and business logic stay the same; only runtime configuration and resource declarations change.
+- **Dynamic batching follows data size and compute cost.** The runtime considers both row counts and bytes instead of forcing objects of very different sizes into a fixed row count. Oversized inputs are split, output buffers flush at row or byte thresholds, and the partition allocator adjusts its target as it observes split sizes.
+- **Pipeline parallelism keeps heterogeneous resources busy.** Reading and decoding, CPU preprocessing, GPU inference, and I/O writes are separate stages with their own resources, concurrency, and batch sizes. An asynchronous execution graph overlaps adjacent stages so one resource can prepare the next batch while another is still running.
+- **Backpressure trades unbounded queues for stable throughput.** When a GPU, model service, or storage system slows down, bounded in-flight tasks, output windows, and resource admission prevent the upstream from submitting indefinitely. Queue bytes and pending work stay visible, keeping memory and object-store peaks under control.
+- **Fault tolerance makes failures retryable, isolatable, and recoverable.** Transient Provider errors, task failures, and Worker failures can be retried according to policy. Actors can reload their model or client after reconstruction. An AI Function can use `on_error="ignore"` to produce `NULL` while preserving error details, or `raise` to fail the task explicitly.
+
+Together these mechanisms turn an individual model call into a continuously running data pipeline: upstream stages prepare data, middle stages infer, downstream stages reconcile results, and resource and error boundaries remain explicit.
+
+---
+
+## Case study: one SQL pipeline for image preprocessing, AI recognition, and claims disposition
+
+Consider an auto-insurance claim. Claim records live in a business table while incident photos live in an image table. The pipeline filters pending claims, joins their photos, uses a Python UDF to correct image orientation, validate image dimensions, and normalize the image format, calls an AI Function for a structured damage assessment, and applies claim amount and business rules to decide the next step. Apart from defining and registering the UDF, the workflow is expressed as one SQL plan.
+
+The JSON Schema in the example constrains the model output to a damaged part, severity, and confidence. Downstream SQL can read those structured fields directly.
+
+```python
+from io import BytesIO
+
+from PIL import Image, ImageOps
+
+import vane
+
+damage_schema = """{
+  "type": "object",
+  "properties": {
+    "damage_part": {"type": "string"},
+    "severity": {"type": "string", "enum": ["low", "medium", "high"]},
+    "confidence": {"type": "number"}
+  },
+  "required": ["damage_part", "severity", "confidence"],
+  "additionalProperties": false
+}"""
+
+@vane.func(return_dtype="BLOB")
+def prepare_image(raw: bytes) -> bytes | None:
+    try:
+        with Image.open(BytesIO(raw)) as image:
+            image = ImageOps.exif_transpose(image).convert("RGB")
+            if min(image.size) < 480:
+                return None
+            image.thumbnail((1024, 1024))
+            output = BytesIO()
+            image.save(output, "JPEG", quality=85)
+            return output.getvalue()
+    except (OSError, TypeError):
+        return None
+
+connection = vane.connect()
+routes = connection.sql(
+    """
+    WITH prepared AS (
+        SELECT c.claim_id, c.claim_amount,
+               prepare_image(i.content) AS image
+        FROM pending_claims AS c
+        LEFT JOIN claim_images AS i USING (claim_id)
+        WHERE c.status = 'pending'
+    )
+    SELECT
+        claim_id,
+        assessment.*,
+        CASE
+            WHEN image IS NULL THEN 'Request more photos'
+            WHEN assessment IS NULL OR assessment.confidence < 0.65 THEN 'Manual review'
+            WHEN assessment.severity = 'high' OR claim_amount >= 50000 THEN 'Claims review'
+            ELSE 'Automatic routing'
+        END AS next_step
+    FROM (
+        SELECT *,
+               CASE WHEN image IS NOT NULL THEN ai_prompt(
+                   'Identify the damaged vehicle part and severity.',
+                   image,
+                   return_format := $damage_schema,
+                   system_message := 'Use only visual evidence; lower confidence when uncertain.',
+                   provider := 'openai',
+                   model := 'gpt-4o-mini',
+                   on_error := 'ignore'
+               ) END AS assessment
+        FROM prepared
+    ) AS assessed
+    """,
+    params={"damage_schema": damage_schema},
+)
+
+routes.write_parquet("claim_routes.parquet")
+```
+
+Python handles image decoding and preprocessing, SQL handles joins, filtering, and claims disposition, and `ai_prompt` turns each preprocessed image into a structured assessment. The assessment remains a column that can participate in conditions and later writes. Calling `write_parquet` materializes the complete plan.
+
+---
+
+## From DuckDB to multimodal AI data processing
+
+Vane Data gives DuckDB users a lower-friction path into multimodal and intelligent data processing: use SQL and Python to express relations, AI Functions and UDFs to process multimodal data, and one runtime to coordinate CPU, GPU, and distributed resources.
+
+Start exploring:
+
+- [GitHub repository](https://github.com/AstroVela/vane)
+- [Quickstart](/docs/data/quickstart/quickstart)
+- [Complete demo: auditable multimodal claims disposition](https://github.com/AstroVela/demo-scene/tree/main/claims-disposition)
+- [Benchmarks](/benchmarks)

@@ -2,12 +2,12 @@
 
 Marketing and documentation site for **Vane** — a DuckDB-compatible engine for
 multimodal data pipelines on Ray. Built with React 19 + Docusaurus, with the
-documentation authored in MDX and rendered through the site's existing UI.
+documentation and blog authored in MDX and rendered through the site's existing UI.
 
 ## Tech stack
 
-- **React 19** + **Docusaurus 3** (Docusaurus docs plugin plus custom marketing routes)
-- **MDX** for documentation content, rendered with the site's custom MDX components
+- **React 19** + **Docusaurus 3** (Docusaurus docs and blog plugins plus custom marketing routes)
+- **MDX** for documentation and blog content, rendered with the site's custom MDX components
 - **ESLint** (flat config in `eslint.config.ts`)
 
 ## Getting started
@@ -63,8 +63,13 @@ docs/
   llms.txt             machine-readable docs index
   llms-full.txt        concatenated docs corpus for agent ingestion
 
+blog/
+  YYYY-MM-DD-slug.mdx  English blog posts
+
 i18n/
   zh-CN/
+    docusaurus-plugin-content-blog/
+      YYYY-MM-DD-slug.mdx  Chinese blog post translations
     docusaurus-plugin-content-docs-data/
       current/         Chinese docs mirror using the same English slugs
 ```
@@ -152,7 +157,7 @@ source.
 - `src/components/mdxComponents.tsx` maps Markdown elements onto the site's
   styled markup (headings, tables, lists, inline code, links).
 - Block components available inside any `.mdx` without importing: `Lead`,
-  `Callout`, `CodeWindow`.
+  `Callout`, `CodeWindow`, and `DataArchitecture`.
 - Docusaurus' MDX pipeline gives every `##` heading an id, so in-page anchors and the
   scrollspy work without hand-written ids.
 - `docs/manifest.json` is generated from `src/docs/registry.ts`,
@@ -161,6 +166,14 @@ source.
   workflows.
 - `docs/llms.txt` and `docs/llms-full.txt` are generated from the manifest and
   MDX source. Regenerate them after changing docs content or ordering.
+
+## Authoring blog posts
+
+English posts live under `blog/`. Chinese translations live under
+`i18n/zh-CN/docusaurus-plugin-content-blog/` with the same file name, slug, and
+date. Use frontmatter for the title and metadata, keep only one locale in each
+file, and add `<!-- truncate -->` after the list-page excerpt. Shared MDX
+components such as `DataArchitecture` are available without an explicit import.
 
 ## License
 

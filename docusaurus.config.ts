@@ -69,6 +69,18 @@ const config = {
         showLastUpdateTime: false,
       },
     ],
+    [
+      '@docusaurus/plugin-content-blog',
+      {
+        path: 'blog',
+        routeBasePath: 'blog',
+        blogTitle: 'Vane Blog',
+        blogDescription: 'Engineering notes, release deep dives, and field reports from the Vane team.',
+        blogSidebarCount: 0,
+        showLastUpdateAuthor: false,
+        showLastUpdateTime: false,
+      },
+    ],
     require.resolve('./src/plugins/vaneRoutes.ts'),
   ],
   themes: ['@docusaurus/theme-classic'],
