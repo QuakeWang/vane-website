@@ -1,20 +1,24 @@
 ---
 slug: ai-workloads-need-a-new-data-engine
-title: AI workloads need a new data engine
+title: "Vane Data: How to Turn DuckDB into an AI Multimodal Data Engine"
 description: Why multimodal AI workloads need a data engine that coordinates relational processing, model inference, and heterogeneous resources.
 date: 2026-08-23
 image: /img/blog/ai-workloads-need-a-new-data-engine/vane-data-architecture-en.png
 ---
 
-<p className="blog-body-lead">AI workloads are moving beyond querying tables toward understanding and acting on multimodal inputs. Agents depend on text, images, audio, video, and documents that must be parsed, filtered, and organized into queryable structures before their workflows can run reliably.</p>
+<p className="blog-body-lead">Vane Data is a multimodal-native data engine built on DuckDB that brings data processing, model inference, and heterogeneous resource scheduling into a single Relation pipeline. This article explains how it combines AI Functions, Python UDFs, and vLLM; uses dynamic batching, pipeline parallelism, backpressure, and fault tolerance to run workloads reliably; and applies them to an auto-insurance workflow from image preprocessing to claims review routing.</p>
 
 <!-- truncate -->
 
-## Traditional data stacks struggle with multimodal workflows
+## AI workloads need a new data engine
+
+AI workloads are moving beyond querying tables toward understanding and acting on multimodal inputs. Agents depend on text, images, audio, video, and documents that must be parsed, filtered, and organized into queryable structures before their workflows can run reliably.
+
+- **Traditional data stacks struggle with multimodal workflows**
 
 Multimodal objects vary wildly in size: one row may be a few bytes or hundreds of megabytes. Model inference also requires CPU, GPU, network, and storage resources with mismatched throughput. A traditional stack combines a warehouse, Python preprocessing scripts, object storage, and a model service: the table engine handles structured data, scripts preprocess media, and another system runs inference. Data moves between systems, while batching, concurrency, retries, and memory limits are configured independently; the pipeline can spend its time queueing, idling, or hitting memory peaks.
 
-## Vane Data brings multimodal processing back to the data engine
+- **Vane Data brings multimodal processing back to the data engine**
 
 Vane Data is a multimodal-native data engine built on DuckDB. It keeps DuckDB's Relation API, treats text, images, and audio as columns, composes AI Functions and Python UDFs in the same relational query, and lets Providers such as vLLM execute inference. The results remain columns that can be filtered, joined, aggregated, and written out.
 
@@ -40,8 +44,8 @@ We are deeply impressed by DuckDB’s outstanding performance in the single-mach
   style={{ width: '100%', height: 'auto' }}
   src="/img/blog/ai-workloads-need-a-new-data-engine/vane-data-architecture-en.png"
   alt="Vane Data multimodal-native data engine architecture"
-  width="6035"
-  height="2678"
+  width="1880"
+  height="837"
   loading="lazy"
   decoding="async"
 />

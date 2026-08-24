@@ -1,14 +1,18 @@
 ---
 slug: ai-workloads-need-a-new-data-engine
-title: AI 工作负载需要新的数据引擎
+title: Vane Data：如何让 DuckDB 成为 AI 多模态数据引擎
 description: 为什么多模态 AI 工作负载需要一个协同关系计算、模型推理与异构资源的数据引擎。
 date: 2026-08-23
 image: /img/blog/ai-workloads-need-a-new-data-engine/vane-data-architecture-zh-cn.png
 ---
 
-<p className="blog-body-lead">AI 工作负载正在从“查表”走向“理解和行动”。AI Agent 的检索、判断和执行依赖多种输入，包括文本、图片、音频、视频和文档。这些多模态数据需要先经过解析、筛选和组织，转化为可查询的结构化形式，才能稳定支撑 Agent 工作流。</p>
+<p className="blog-body-lead">Vane Data 是基于 DuckDB 构建的多模态原生数据引擎，将数据处理、模型推理和异构资源调度纳入同一条 Relation 流水线。本文介绍它如何组合 AI Functions、Python UDF 与 vLLM，如何通过动态批处理、流水线并行、背压和容错让任务稳定运行，并以车险理赔为例展示从图片预处理到审核分流的完整流程。</p>
 
 <!-- truncate -->
+
+## AI 工作负载需要新的数据引擎
+
+AI 工作负载正在从“查表”走向“理解和行动”。AI Agent 的检索、判断和执行依赖多种输入，包括文本、图片、音频、视频和文档。这些多模态数据需要先经过解析、筛选和组织，转化为可查询的结构化形式，才能稳定支撑 Agent 工作流。
 
 - **传统数据栈难以承载多模态工作流**
 
@@ -36,8 +40,8 @@ Vane Data 是基于 DuckDB 构建的多模态原生数据引擎，它延续 Duck
   style={{ width: '100%', height: 'auto' }}
   src="/img/blog/ai-workloads-need-a-new-data-engine/vane-data-architecture-zh-cn.png"
   alt="Vane Data 多模态原生数据引擎架构"
-  width="6035"
-  height="2678"
+  width="1873"
+  height="840"
   loading="lazy"
   decoding="async"
 />

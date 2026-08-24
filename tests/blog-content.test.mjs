@@ -15,6 +15,8 @@ const englishArchitectureImageUrl =
   '/img/blog/ai-workloads-need-a-new-data-engine/vane-data-architecture-en.png'
 const chineseArchitectureImageUrl =
   '/img/blog/ai-workloads-need-a-new-data-engine/vane-data-architecture-zh-cn.png'
+const englishArchitectureImageSize = ['1880', '837']
+const chineseArchitectureImageSize = ['1873', '840']
 
 const configSource = readFileSync('docusaurus.config.ts', 'utf8')
 const routesSource = readFileSync('src/plugins/vaneRoutes.ts', 'utf8')
@@ -27,7 +29,8 @@ const chineseBlogOptions = JSON.parse(
 const pageStyles = readFileSync('src/pages.css', 'utf8')
 
 function frontmatterValue(source, key) {
-  return source.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))?.[1]
+  const value = source.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))?.[1]
+  return value?.replace(/^(["'])(.*)\1$/, '$2')
 }
 
 function fencedCode(source) {
@@ -51,8 +54,14 @@ test('English and Chinese posts share one stable localized route', () => {
   )
   assert.equal(frontmatterValue(chinesePost, 'slug'), frontmatterValue(englishPost, 'slug'))
   assert.equal(frontmatterValue(chinesePost, 'date'), frontmatterValue(englishPost, 'date'))
-  assert.equal(frontmatterValue(englishPost, 'title'), 'AI workloads need a new data engine')
-  assert.equal(frontmatterValue(chinesePost, 'title'), 'AI 工作负载需要新的数据引擎')
+  assert.equal(
+    frontmatterValue(englishPost, 'title'),
+    'Vane Data: How to Turn DuckDB into an AI Multimodal Data Engine',
+  )
+  assert.equal(
+    frontmatterValue(chinesePost, 'title'),
+    'Vane Data：如何让 DuckDB 成为 AI 多模态数据引擎',
+  )
   for (const source of [englishPost, chinesePost]) {
     assert.equal((source.match(/<!-- truncate -->/g) ?? []).length, 1)
     assert.match(
@@ -64,19 +73,29 @@ test('English and Chinese posts share one stable localized route', () => {
 
 test('Both posts use localized architecture images and retain the runnable example', () => {
   const localizedPosts = [
-    [englishPost, englishArchitectureImagePath, englishArchitectureImageUrl],
-    [chinesePost, chineseArchitectureImagePath, chineseArchitectureImageUrl],
+    [
+      englishPost,
+      englishArchitectureImagePath,
+      englishArchitectureImageUrl,
+      ...englishArchitectureImageSize,
+    ],
+    [
+      chinesePost,
+      chineseArchitectureImagePath,
+      chineseArchitectureImageUrl,
+      ...chineseArchitectureImageSize,
+    ],
   ]
 
-  for (const [source, imagePath, imageUrl] of localizedPosts) {
+  for (const [source, imagePath, imageUrl, imageWidth, imageHeight] of localizedPosts) {
     assert.equal(existsSync(imagePath), true)
     assert.equal(readFileSync(imagePath).subarray(1, 4).toString('ascii'), 'PNG')
     assert.equal(frontmatterValue(source, 'image'), imageUrl)
     assert.match(source, /<img\s+className="dimg"/)
     assert.match(source, /style=\{\{ width: '100%', height: 'auto' \}\}/)
     assert.ok(source.includes(`src="${imageUrl}"`))
-    assert.match(source, /width="6035"/)
-    assert.match(source, /height="2678"/)
+    assert.ok(source.includes(`width="${imageWidth}"`))
+    assert.ok(source.includes(`height="${imageHeight}"`))
     assert.match(source, /loading="lazy"/)
     assert.doesNotMatch(source, /<DataArchitecture \/>/)
     assert.match(source, /@vane\.func\(return_dtype="BLOB"\)/)
