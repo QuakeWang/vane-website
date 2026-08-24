@@ -4,7 +4,7 @@ const config = {
   title: 'Vane',
   tagline: 'DuckDB-compatible pipelines for AI workloads',
   favicon: 'favicon.svg',
-  url: process.env.SITE_URL ?? 'https://vane.dev',
+  url: process.env.SITE_URL ?? 'https://vane.astrovela.ai',
   baseUrl: '/',
   organizationName: 'AstroVela',
   projectName: 'vane',

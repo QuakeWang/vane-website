@@ -104,6 +104,13 @@ test('Docusaurus config enables zh-CN locale and the Data docs plugin', () => {
   assert.match(configSource, /sidebarPath:\s*require\.resolve\('\.\/sidebars\.data\.ts'\)/)
 })
 
+test('Docusaurus defaults canonical metadata to the production origin', () => {
+  assert.match(
+    configSource,
+    /url:\s*process\.env\.SITE_URL\s*\?\?\s*'https:\/\/vane\.astrovela\.ai'/,
+  )
+})
+
 test('Docusaurus docs sidebar allows multiple categories to stay expanded', () => {
   assert.match(configSource, /autoCollapseCategories:\s*false/)
 })
