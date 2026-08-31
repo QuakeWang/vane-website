@@ -157,12 +157,12 @@
 }
 .blog-wrapper .markdown {
   --docs-media-w: 100%;
-  --blog-prose-w: min(100%, 820px);
+  --blog-prose-w: 100%;
   color: var(--ink-2);
 }
 .blog-wrapper .markdown > *:first-child { margin-top: 0; }
 .blog-wrapper .markdown h2.ds {
-  max-width: 920px;
+  max-width: var(--blog-prose-w);
   margin: 44px 0 0;
   padding-top: 12px;
   color: var(--ink);
@@ -187,7 +187,7 @@
   line-height: 1.72;
 }
 .blog-wrapper .markdown p.blog-body-lead {
-  max-width: 900px;
+  max-width: var(--blog-prose-w);
   margin-top: 18px;
   color: var(--ink);
   font-size: 17px;
