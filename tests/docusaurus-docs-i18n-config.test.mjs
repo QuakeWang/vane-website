@@ -31,13 +31,6 @@ const udfConceptSources = [
     'utf8',
   ),
 ]
-const multimodalStructuredOutputSources = [
-  readFileSync('docs/data/tutorials/examples/multimodal-structured-outputs.mdx', 'utf8'),
-  readFileSync(
-    'i18n/zh-CN/docusaurus-plugin-content-docs-data/current/tutorials/examples/multimodal-structured-outputs.mdx',
-    'utf8',
-  ),
-]
 const installationSources = [
   readFileSync('docs/data/quickstart/installation.mdx', 'utf8'),
   readFileSync(
@@ -67,7 +60,7 @@ const exampleRunnerSources = [
   'docs/data/tutorials/examples/querying-images.mdx',
   'docs/data/tutorials/examples/image-generation.mdx',
   'docs/data/tutorials/examples/voice-ai-analytics.mdx',
-  'docs/data/tutorials/examples/multimodal-structured-outputs.mdx',
+  'docs/data/tutorials/examples/basic-prompt.mdx',
   'docs/data/tutorials/use-cases/claims-disposition.mdx',
   'docs/data/tutorials/use-cases/enterprise-agent-evidence.mdx',
   'docs/data/tutorials/use-cases/multimodal-training-data.mdx',
@@ -80,7 +73,7 @@ const exampleRunnerSources = [
   'i18n/zh-CN/docusaurus-plugin-content-docs-data/current/tutorials/examples/querying-images.mdx',
   'i18n/zh-CN/docusaurus-plugin-content-docs-data/current/tutorials/examples/image-generation.mdx',
   'i18n/zh-CN/docusaurus-plugin-content-docs-data/current/tutorials/examples/voice-ai-analytics.mdx',
-  'i18n/zh-CN/docusaurus-plugin-content-docs-data/current/tutorials/examples/multimodal-structured-outputs.mdx',
+  'i18n/zh-CN/docusaurus-plugin-content-docs-data/current/tutorials/examples/basic-prompt.mdx',
   'i18n/zh-CN/docusaurus-plugin-content-docs-data/current/tutorials/use-cases/claims-disposition.mdx',
   'i18n/zh-CN/docusaurus-plugin-content-docs-data/current/tutorials/use-cases/enterprise-agent-evidence.mdx',
   'i18n/zh-CN/docusaurus-plugin-content-docs-data/current/tutorials/use-cases/multimodal-training-data.mdx',
@@ -280,16 +273,6 @@ test('AI snippets use the v0.1 named-argument SQL surface', () => {
   }
 })
 
-test('multimodal structured-output snippets use the current Prompt relation surface', () => {
-  for (const source of multimodalStructuredOutputSources) {
-    assert.match(source, /OPENAI_API_KEY/)
-    assert.match(source, /ConfigDict\(extra="forbid"\)/)
-    assert.match(source, /\[vane\.col\("question"\), vane\.col\("image"\)\]/)
-    assert.match(source, /"max_output_tokens": args\.max_tokens/)
-    assert.doesNotMatch(source, /"api_key":|image_columns=|append_prompt_output|"max_tokens":/)
-  }
-})
-
 test('documentation installation commands use uv and the base vane-ai package', () => {
   for (const source of [
     aiFunctionsSource,
@@ -349,11 +332,11 @@ test('wheel-backed examples document sparse checkout and bounded commands', () =
     'python examples/querying_images.py --source sample --limit 5',
     'python examples/image_generation.py --source sample --limit 4',
     'python examples/voice_ai_analytics.py --source sample --limit 3',
-    'python examples/multimodal_structured_outputs.py --source synthetic --limit 1 --skip-judge',
+    'python examples/basic_prompt.py',
   ]
 
   for (const source of wheelExampleSources) {
-    assert.match(source, /git clone --depth 1 --filter=blob:none --sparse/)
+    assert.match(source, /git clone --branch v0\.1\.0 --depth 1 --filter=blob:none --sparse/)
     assert.match(source, /https:\/\/github\.com\/AstroVela\/vane\.git vane-examples/)
     assert.match(source, /cd vane-examples/)
     assert.match(source, /git sparse-checkout set examples/)

@@ -1,0 +1,133 @@
+---
+title: Basic Prompt
+---
+
+Prompting becomes a data operation when every text or image request must stay attached to its source row. This tutorial follows [`examples/basic_prompt.py`](https://github.com/AstroVela/vane/blob/main/examples/basic_prompt.py) through the Prompt surfaces published in Vane 0.1.0: plain text, structured output, raw provider responses, and SQL.
+
+The example reads the bundled `examples/example.png` file and sends requests to the OpenAI provider. Install the provider extra and expose the credential to the process that executes the relation:
+
+```bash
+uv pip install 'vane-ai[openai]==0.1.0'
+export OPENAI_API_KEY="<your-token>"
+```
+
+Provider calls can incur cost and send image and prompt data outside your environment. Keep the first run small and use a model available to your configured endpoint.
+
+## 1. Build the image Relation
+
+`read_blob` is a table function. The query reads the example image into a `BLOB` column and places the prompt beside it:
+
+```python
+import vane
+
+connection = vane.connect()
+relation = connection.sql(
+    """
+    SELECT 'Summarize this image.' AS prompt, content AS image
+    FROM read_blob('examples/example.png')
+    """
+)
+```
+
+Run the script from the sparse-checkout root so the relative image path resolves. The Relation now carries both inputs needed by the model and can preserve their row alignment through execution.
+
+## 2. Prompt with ordered text and image messages
+
+The Relation form of `vane.ai.prompt` accepts the source Relation first, followed by one Expression or an ordered list of Expressions. Here the provider sees the text prompt and then the image bytes. A null item is omitted for that row.
+
+```python
+# Functional Relation API. Message expressions are evaluated left-to-right;
+# NULL items are omitted for each row.
+responses = vane.ai.prompt(
+    relation,
+    [vane.col("prompt"), vane.col("image")],
+    system_message="Answer briefly.",
+    model="gpt-4o-mini",
+    output_column="response",
+    max_output_tokens=128,
+)
+responses.show()
+```
+
+The result keeps the input columns and appends `response`. `show()` materializes the lazy Relation through Vane's configured runner.
+
+## 3. Return a native structured value
+
+Pass a supported JSON Schema subset through `return_format` to constrain generation and expose the result as a native DuckDB `STRUCT`. For OpenAI GPT models, every object is closed and every property is required, so nullable fields must include `null` explicitly.
+
+```python
+# The portable schema subset produces a native STRUCT response. For OpenAI GPT
+# models every object is closed and every property is required.
+answer_schema = {
+    "type": "object",
+    "properties": {
+        "summary": {"type": "string"},
+        "confidence": {"type": ["number", "null"]},
+    },
+    "required": ["summary", "confidence"],
+    "additionalProperties": False,
+}
+structured = vane.ai.prompt(
+    relation,
+    [vane.col("prompt"), vane.col("image")],
+    return_format=answer_schema,
+    model="gpt-4o-mini",
+    output_column="answer",
+)
+structured.show()
+```
+
+Keeping the schema in the plan makes the output type available before provider execution and lets downstream SQL address fields such as `answer.summary` directly.
+
+## 4. Inspect the raw provider response
+
+`return_raw_response=True` changes the output to a JSON `VARCHAR` containing the provider response body. A supplied schema still constrains generation, but Vane does not expose the parsed `STRUCT` in this mode.
+
+```python
+# Combining both parameters still constrains generation with the schema, but
+# returns the provider response body JSON as VARCHAR.
+raw = vane.ai.prompt(
+    relation,
+    vane.col("prompt"),
+    return_format=answer_schema,
+    return_raw_response=True,
+    model="gpt-4o-mini",
+    output_column="raw_response",
+)
+raw.show()
+```
+
+Raw responses are useful when provider metadata needs to be retained for diagnostics or auditing. Treat them as provider-specific records rather than as a portable application schema.
+
+## 5. Use the typed SQL overload
+
+The SQL form accepts the same prompt, image, schema, system message, model, and operation options. The image input may be one `BLOB` or a `BLOB[]`.
+
+```python
+# The equivalent typed SQL overload accepts one BLOB or BLOB[] image input.
+connection.sql(
+    """
+    SELECT AI_PROMPT(
+        prompt,
+        image,
+        return_format := json '{
+            "type": "object",
+            "properties": {
+                "summary": {"type": "string"},
+                "confidence": {"type": ["number", "null"]}
+            },
+            "required": ["summary", "confidence"],
+            "additionalProperties": false
+        }',
+        system_message := 'Answer briefly.',
+        model := 'gpt-4o-mini',
+        options := struct_pack(max_output_tokens := 128)
+    ) AS response
+    FROM relation
+    """
+).show()
+```
+
+Use the Python form when composing Relations and Expressions in Python, and the SQL overload when the surrounding pipeline is already a query. Both forms use the same provider credentials from the worker environment.
+
+See the [complete source](https://github.com/AstroVela/vane/blob/main/examples/basic_prompt.py) and its bundled [`example.png`](https://github.com/AstroVela/vane/blob/main/examples/example.png).

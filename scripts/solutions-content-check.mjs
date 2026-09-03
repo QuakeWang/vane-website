@@ -35,14 +35,14 @@ function extractUseCase(id) {
 
 const mustIncludeInPage = [
   'AI pipeline use cases — Vane',
-  'Explore Vane use cases for multimodal AI pipelines: embeddings, semantic search, deduplication, image pipelines, generation, structured multimodal output, and voice analytics.',
+  'Explore Vane use cases for multimodal AI pipelines: embeddings, semantic search, deduplication, image pipelines, generation, prompting, and voice analytics.',
   'AI pipelines Vane is built for',
   'Web Text to Embeddings',
   'Semantic Search',
   'Text Deduplication',
   'Image Pipelines',
   'Image Generation',
-  'Multimodal Structured Output',
+  'Basic Prompt',
   'Voice AI Analytics',
   'Vane AI 工作流用例',
   'Vane 适合哪些 AI 工作流',
@@ -60,7 +60,7 @@ assert.match(page, /<Head>[\s\S]*<title>\{copy\.title\}<\/title>[\s\S]*content=\
 assert.match(page, /import \{ vaneSourceFileUrl \} from '\.\.\/siteLinks'/, 'UseCases page should import the canonical source URL helper')
 assert.match(page, /<Button sm href=\{vaneSourceFileUrl\(u\.example\)\} target="_blank" rel="noreferrer" arrow>/, 'Open example should link to the rendered canonical script')
 assert.doesNotMatch(page, /<Button sm to="\/docs" arrow>\{copy\.openExample\}<\/Button>/, 'Open example should not route to the generic docs entry')
-assert.match(siteLinks, /vaneSourceFileUrl = \(path: string\) => `\$\{GITHUB_URL\}\/blob\/main\/\$\{path\}`/, 'Canonical source links should follow the public main branch')
+assert.match(siteLinks, /vaneSourceFileUrl = \(path: string\) => `\$\{GITHUB_URL\}\/blob\/main\/\$\{path\}`/, 'Canonical source links should follow the main development branch')
 assert.doesNotMatch(page, /See all examples/, 'UseCases page should not render a See all examples CTA')
 assert.doesNotMatch(data, /summary:\s*string|^\s*summary:/m, 'Use cases should not carry an unused summary field')
 
@@ -70,7 +70,7 @@ const canonicalExamples = {
   dedupe: 'minhash_dedupe.py',
   images: 'querying_images.py',
   imagegen: 'image_generation.py',
-  multimodal: 'multimodal_structured_outputs.py',
+  multimodal: 'basic_prompt.py',
   voice: 'voice_ai_analytics.py',
 }
 
@@ -95,7 +95,7 @@ for (const flowName of [
   'LSH candidates',
   'AnalyzeRedRegionsBatch',
   'GenerateImageFromTextBatch',
-  'VLM with image',
+  'STRUCT response',
   'subtitle rows',
 ]) {
   assert.match(data, new RegExp(escapeRegExp(flowName)), `UseCases data should describe the canonical ${flowName} flow`)

@@ -1,0 +1,133 @@
+---
+title: 基础 Prompt
+---
+
+当每条文本或图像请求都必须与来源行保持关联时，Prompt 就成为一种数据操作。本教程沿着 [`examples/basic_prompt.py`](https://github.com/AstroVela/vane/blob/main/examples/basic_prompt.py)，介绍 Vane 0.1.0 正式发布的 Prompt 用法：纯文本结果、结构化输出、原始 provider 响应和 SQL。
+
+示例会读取仓库自带的 `examples/example.png`，并向 OpenAI provider 发起请求。先安装 provider extra，并把凭据提供给实际执行 Relation 的进程：
+
+```bash
+uv pip install 'vane-ai[openai]==0.1.0'
+export OPENAI_API_KEY="<your-token>"
+```
+
+Provider 调用可能产生费用，并把图像和提示数据发送到外部环境。首次运行应保持输入规模较小，并使用已配置 endpoint 支持的模型。
+
+## 1. 构建图像 Relation
+
+`read_blob` 是 table function。查询会把示例图像读入 `BLOB` 列，并在旁边保留提示文本：
+
+```python
+import vane
+
+connection = vane.connect()
+relation = connection.sql(
+    """
+    SELECT 'Summarize this image.' AS prompt, content AS image
+    FROM read_blob('examples/example.png')
+    """
+)
+```
+
+请从 sparse checkout 根目录运行脚本，让相对图像路径能够正确解析。Relation 现在同时携带模型所需的两个输入，并能在执行期间保持行对齐。
+
+## 2. 按顺序传入文本与图像消息
+
+Relation 形式的 `vane.ai.prompt` 先接收源 Relation，再接收一个 Expression 或按顺序排列的 Expression 列表。这里 provider 会先看到文本提示，再看到图像字节；某一行中的 null 项会被省略。
+
+```python
+# Functional Relation API. Message expressions are evaluated left-to-right;
+# NULL items are omitted for each row.
+responses = vane.ai.prompt(
+    relation,
+    [vane.col("prompt"), vane.col("image")],
+    system_message="Answer briefly.",
+    model="gpt-4o-mini",
+    output_column="response",
+    max_output_tokens=128,
+)
+responses.show()
+```
+
+结果会保留输入列并追加 `response`。`show()` 通过 Vane 当前配置的 runner 物化这个 lazy Relation。
+
+## 3. 返回原生结构化值
+
+通过 `return_format` 传入受支持的 JSON Schema 子集，可以约束生成结果，并把结果公开为原生 DuckDB `STRUCT`。对于 OpenAI GPT 模型，每个 object 都必须闭合，每个 property 都必须标记为 required，因此可空字段需要显式包含 `null`。
+
+```python
+# The portable schema subset produces a native STRUCT response. For OpenAI GPT
+# models every object is closed and every property is required.
+answer_schema = {
+    "type": "object",
+    "properties": {
+        "summary": {"type": "string"},
+        "confidence": {"type": ["number", "null"]},
+    },
+    "required": ["summary", "confidence"],
+    "additionalProperties": False,
+}
+structured = vane.ai.prompt(
+    relation,
+    [vane.col("prompt"), vane.col("image")],
+    return_format=answer_schema,
+    model="gpt-4o-mini",
+    output_column="answer",
+)
+structured.show()
+```
+
+Schema 会随执行计划传递，因此 provider 执行前就能确定输出类型；下游 SQL 也可以直接访问 `answer.summary` 等字段。
+
+## 4. 检查原始 provider 响应
+
+`return_raw_response=True` 会把输出改为包含 provider 响应 body 的 JSON `VARCHAR`。即使同时提供 schema，它仍会约束生成结果，但此模式不会公开解析后的 `STRUCT`。
+
+```python
+# Combining both parameters still constrains generation with the schema, but
+# returns the provider response body JSON as VARCHAR.
+raw = vane.ai.prompt(
+    relation,
+    vane.col("prompt"),
+    return_format=answer_schema,
+    return_raw_response=True,
+    model="gpt-4o-mini",
+    output_column="raw_response",
+)
+raw.show()
+```
+
+需要为诊断或审计保留 provider 元数据时，原始响应很有用；但它属于 provider-specific 记录，不应替代可移植的应用 schema。
+
+## 5. 使用类型化 SQL overload
+
+SQL 形式可以传入相同的 prompt、image、schema、system message、model 和操作选项。图像输入可以是单个 `BLOB` 或 `BLOB[]`。
+
+```python
+# The equivalent typed SQL overload accepts one BLOB or BLOB[] image input.
+connection.sql(
+    """
+    SELECT AI_PROMPT(
+        prompt,
+        image,
+        return_format := json '{
+            "type": "object",
+            "properties": {
+                "summary": {"type": "string"},
+                "confidence": {"type": ["number", "null"]}
+            },
+            "required": ["summary", "confidence"],
+            "additionalProperties": false
+        }',
+        system_message := 'Answer briefly.',
+        model := 'gpt-4o-mini',
+        options := struct_pack(max_output_tokens := 128)
+    ) AS response
+    FROM relation
+    """
+).show()
+```
+
+在 Python 中组合 Relation 与 Expression 时使用 Python 形式；周围流程已经是 query 时使用 SQL overload。两种形式都会从 worker 环境读取相同的 provider 凭据。
+
+完整实现请查看[源码](https://github.com/AstroVela/vane/blob/main/examples/basic_prompt.py)及其自带的 [`example.png`](https://github.com/AstroVela/vane/blob/main/examples/example.png)。

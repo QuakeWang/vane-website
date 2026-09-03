@@ -126,12 +126,12 @@
       }
     },
     {
-      "slug": "tutorials/examples/multimodal-structured-outputs",
-      "title": "Multimodal Structured Outputs",
-      "source": "docs/data/tutorials/examples/multimodal-structured-outputs.mdx",
-      "route": "/docs/data/tutorials/examples/multimodal-structured-outputs",
+      "slug": "tutorials/examples/basic-prompt",
+      "title": "Basic Prompt",
+      "source": "docs/data/tutorials/examples/basic-prompt.mdx",
+      "route": "/docs/data/tutorials/examples/basic-prompt",
       "frontmatter": {
-        "title": "Multimodal Structured Outputs"
+        "title": "Basic Prompt"
       }
     },
     {
@@ -380,9 +380,9 @@
               "route": "/docs/data/tutorials/examples/voice-ai-analytics"
             },
             {
-              "slug": "tutorials/examples/multimodal-structured-outputs",
-              "label": "Multimodal Structured Outputs",
-              "route": "/docs/data/tutorials/examples/multimodal-structured-outputs"
+              "slug": "tutorials/examples/basic-prompt",
+              "label": "Basic Prompt",
+              "route": "/docs/data/tutorials/examples/basic-prompt"
             }
           ]
         },
