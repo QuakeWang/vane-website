@@ -2,7 +2,7 @@
 title: SQL ai_embed
 ---
 
-`ai_embed` 是 Vane Embed 的 SQL Expression 形式。它为每行输入生成一个定长向量，可用于投影。
+`ai_embed` 只能用于 SQL `SELECT` 列表，并为每行输入生成一个定长向量。
 
 ## 签名
 
@@ -56,11 +56,9 @@ ORDER BY id;
 
 使用 OpenAI 官方端点时，本例中的 `text-embedding-3-small` 返回 `FLOAT[1536]`。
 
-## 使用位置与错误
+## 错误
 
-`ai_embed` 是投影 Expression，不是聚合函数或表函数。Provider 对每个非 `NULL` 输入都必须按原顺序返回一个长度准确、数值有限的向量。能够在本地完成的校验——包括类型、配置参数常量性、未知 Provider、无法确定输出维度、无效选项，以及已知不兼容的模型与 Provider 组合——会在执行前报错。模型是否存在、是否有权使用、无法在本地确定的端点能力和 Provider 请求失败，则可能要到执行期间才能发现。`on_error := 'ignore'` 只处理逐行执行失败。
-
-SQL 不支持 Relation 专用的字符分块选项。可以先拆分文本，或者改用带 Relation 的 [`vane.ai.embed`](../embed.mdx)。
+Provider 对每个非 `NULL` 输入都必须按原顺序返回一个长度准确、数值有限的向量。能够在本地完成的校验——包括类型、配置参数常量性、未知 Provider、无法确定输出维度、无效选项，以及已知不兼容的模型与 Provider 组合——会在执行前报错。模型是否存在、是否有权使用、无法在本地确定的端点能力和 Provider 请求失败，则可能要到执行期间才能发现。`on_error := 'ignore'` 只处理逐行执行失败。
 
 ## 源码与相关页面
 

@@ -11,7 +11,7 @@ Vane 提供 Prompt 和 Embed，用于调用模型处理数据列。本参考可�
 | Prompt | [`vane.ai.prompt`](prompt.mdx) | `vane.ai.prompt(rel, ...)` 或 `rel.prompt(...)` | [`ai_prompt`](sql/ai-prompt.mdx) | `VARCHAR`、原生 `STRUCT` 或原始响应 JSON（`VARCHAR`） |
 | Embed | [`vane.ai.embed`](embed.mdx) | `vane.ai.embed(rel, ...)` 或 `rel.embed(...)` | [`ai_embed`](sql/ai-embed.mdx) | 定长 `FLOAT[n]` |
 
-Expression 形式返回惰性的 `vane.Expression`，用 `.alias(...)` 命名。Relation 形式保留输入列，再追加一个结果列；如果同名列已经存在，会按大小写不敏感的规则替换。SQL 形式用于投影，通过 `AS` 命名结果。
+Python API 的第一个参数为 `Expression` 时，会返回惰性的 `vane.Expression`，可用 `.alias(...)` 命名；Prompt 也接受非空 `list[Expression]`。第一个参数为 `Relation` 时，会保留输入列并追加一个结果列；如果同名列已经存在，会按大小写不敏感的规则替换。SQL API 只能用于 `SELECT` 列表，通过 `AS` 命名结果。
 
 ## 执行保证
 

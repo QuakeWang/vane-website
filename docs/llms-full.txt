@@ -4749,7 +4749,7 @@ A `NULL` input returns `NULL` with the resolved vector type without calling the 
 Route: /docs/data/reference/ai/sql/ai-prompt
 Source: docs/data/reference/ai/sql/ai-prompt.mdx
 
-`ai_prompt` is the SQL Expression form of Vane Prompt. It produces one text, structured, or raw-response value per input row and can be used in a projection.
+`ai_prompt` can be used only in a SQL `SELECT` list. It produces one text, structured, or raw-response value per input row.
 
 ## Signatures
 
@@ -4813,9 +4813,9 @@ FROM (VALUES
 ORDER BY id;
 ```
 
-## Placement and errors
+## Errors
 
-`ai_prompt` is a projection Expression, not an aggregate or table function. A `NULL` prompt returns `NULL` while preserving the result type, without contacting the provider. Locally checkable errors—including invalid types, non-constant configuration arguments, unknown providers, invalid JSON Schemas or options, and known model/provider incompatibilities—raise before execution. Model availability, permissions, endpoint capabilities that cannot be determined locally, and Provider request failures may be detected only during execution. `on_error := 'ignore'` applies only to row execution failures.
+A `NULL` prompt returns `NULL` while preserving the result type, without contacting the provider. Locally checkable errors—including invalid types, non-constant configuration arguments, unknown providers, invalid JSON Schemas or options, and known model/provider incompatibilities—raise before execution. Model availability, permissions, endpoint capabilities that cannot be determined locally, and Provider request failures may be detected only during execution. `on_error := 'ignore'` applies only to row execution failures.
 
 ## Source and related pages
 
@@ -4828,7 +4828,7 @@ ORDER BY id;
 Route: /docs/data/reference/ai/sql/ai-embed
 Source: docs/data/reference/ai/sql/ai-embed.mdx
 
-`ai_embed` is the SQL Expression form of Vane Embed. It produces one fixed-size vector per input row and can be used in a projection.
+`ai_embed` can be used only in a SQL `SELECT` list. It produces one fixed-size vector per input row.
 
 ## Signature
 
@@ -4882,11 +4882,9 @@ ORDER BY id;
 
 With the official OpenAI endpoint, `text-embedding-3-small` returns `FLOAT[1536]` for this example.
 
-## Placement and errors
+## Errors
 
-`ai_embed` is a projection Expression, not an aggregate or table function. Provider batches must return one finite vector of the expected width for every non-NULL input, in the same order. Locally checkable errors—including invalid types, non-constant configuration arguments, unknown providers, unresolved output dimensions, invalid options, and known model/provider incompatibilities—raise before execution. Model availability, permissions, endpoint capabilities that cannot be determined locally, and Provider request failures may be detected only during execution. `on_error := 'ignore'` applies only to row execution failures.
-
-Relation-only character chunking options are not available through SQL. Split text before the projection or use [`vane.ai.embed`](../embed.mdx) with a Relation.
+Provider batches must return one finite vector of the expected width for every non-NULL input, in the same order. Locally checkable errors—including invalid types, non-constant configuration arguments, unknown providers, unresolved output dimensions, invalid options, and known model/provider incompatibilities—raise before execution. Model availability, permissions, endpoint capabilities that cannot be determined locally, and Provider request failures may be detected only during execution. `on_error := 'ignore'` applies only to row execution failures.
 
 ## Source and related pages
 

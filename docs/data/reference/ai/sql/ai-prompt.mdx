@@ -2,7 +2,7 @@
 title: SQL ai_prompt
 ---
 
-`ai_prompt` is the SQL Expression form of Vane Prompt. It produces one text, structured, or raw-response value per input row and can be used in a projection.
+`ai_prompt` can be used only in a SQL `SELECT` list. It produces one text, structured, or raw-response value per input row.
 
 ## Signatures
 
@@ -66,9 +66,9 @@ FROM (VALUES
 ORDER BY id;
 ```
 
-## Placement and errors
+## Errors
 
-`ai_prompt` is a projection Expression, not an aggregate or table function. A `NULL` prompt returns `NULL` while preserving the result type, without contacting the provider. Locally checkable errors—including invalid types, non-constant configuration arguments, unknown providers, invalid JSON Schemas or options, and known model/provider incompatibilities—raise before execution. Model availability, permissions, endpoint capabilities that cannot be determined locally, and Provider request failures may be detected only during execution. `on_error := 'ignore'` applies only to row execution failures.
+A `NULL` prompt returns `NULL` while preserving the result type, without contacting the provider. Locally checkable errors—including invalid types, non-constant configuration arguments, unknown providers, invalid JSON Schemas or options, and known model/provider incompatibilities—raise before execution. Model availability, permissions, endpoint capabilities that cannot be determined locally, and Provider request failures may be detected only during execution. `on_error := 'ignore'` applies only to row execution failures.
 
 ## Source and related pages
 

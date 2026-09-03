@@ -2,7 +2,7 @@
 title: vane.ai.prompt
 ---
 
-`vane.ai.prompt` 接收一条消息 Expression 或一个有序的消息 Expression 列表，并创建保持行数不变的 Prompt 操作。Expression 形式返回惰性 Expression；传入 Relation 则返回追加响应列的 Relation。
+`vane.ai.prompt` 根据第一个参数选择调用方式。传入消息 `Expression` 或非空 `list[Expression]` 时返回惰性 `Expression`；传入 `Relation` 时返回保留输入列并追加响应列的 `Relation`。
 
 ## 签名
 
@@ -49,12 +49,12 @@ vane.ai.prompt(
 | `model` | 非空 `str` 或 `None` | 模型 ID。`None` 表示使用 Provider 元数据或默认值 | `None` |
 | `return_raw_response` | `bool` | 将 Provider SDK 响应体序列化为符合严格 JSON 语法的 `VARCHAR`。即使同时传入 JSON Schema，仍会用它约束生成 | `False` |
 | `on_error` | `"raise"` 或 `"ignore"` | 单行执行失败时的处理策略 | `"raise"` |
-| `output_column` | 非空 `str` | 仅 Relation 形式可用的输出列名 | `"response"` |
+| `output_column` | 非空 `str` | 仅在第一个参数为 `Relation` 时可用的输出列名 | `"response"` |
 | `**options` | `PromptOptions` | 下文列出的 Provider 请求参数和执行选项 | 由 Provider 决定 |
 
-Expression 形式不接受 `output_column`，请使用 `.alias(...)`。Relation 形式会保留所有输入列，并按大小写不敏感的规则替换已有同名输出列。
+第一个参数为消息 `Expression` 或非空 `list[Expression]` 时，不接受 `output_column`，请使用 `.alias(...)`。第一个参数为 `Relation` 时，会保留所有输入列，并按大小写不敏感的规则替换已有同名输出列。
 
-## 选项
+## Options
 
 | 选项 | 类型 | 适用范围 | 默认值 | 说明 |
 | --- | --- | --- | --- | --- |

@@ -2,7 +2,7 @@
 title: SQL ai_prompt
 ---
 
-`ai_prompt` 是 Vane Prompt 的 SQL Expression 形式。它为每行输入生成一个文本、结构化结果或原始响应，可用于投影。
+`ai_prompt` 只能用于 SQL `SELECT` 列表，并为每行输入生成一个文本、结构化结果或原始响应。
 
 ## 签名
 
@@ -37,7 +37,7 @@ ai_prompt(prompt VARCHAR, images BLOB[], ...)
 | `model` | `VARCHAR` 或 `NULL` | 模型 ID | `NULL` |
 | `return_raw_response` | `BOOLEAN` | 把符合严格 JSON 语法的 Provider 响应作为 `VARCHAR` 返回 | `FALSE` |
 | `on_error` | `VARCHAR` | `'raise'` 或 `'ignore'` | `'raise'` |
-| `options` | `STRUCT` 或 `NULL` | 文档列出的 [`PromptOptions`](../prompt.mdx#选项) | `NULL` |
+| `options` | `STRUCT` 或 `NULL` | 文档列出的 [`PromptOptions`](../prompt.mdx#options) | `NULL` |
 
 只有 `prompt`、`image` 和 `images` 可以读取行数据。Vane 会在准备查询时计算其他参数，因此这些参数不能依赖当前行。Provider 请求参数和执行设置放进 `struct_pack(...)`。只能使用文档中列出的选项；与 Provider 不兼容或疑似凭证的字段会在执行前被拒绝。
 
@@ -66,9 +66,9 @@ FROM (VALUES
 ORDER BY id;
 ```
 
-## 使用位置与错误
+## 错误
 
-`ai_prompt` 是投影 Expression，不是聚合函数或表函数。`prompt` 为 `NULL` 时，会返回保留结果类型的 `NULL`，且不访问 Provider。能够在本地完成的校验——包括类型、配置参数常量性、未知 Provider、无效 JSON Schema 或选项，以及已知不兼容的模型与 Provider 组合——会在执行前报错。模型是否存在、是否有权使用、无法在本地确定的端点能力和 Provider 请求失败，则可能要到执行期间才能发现。`on_error := 'ignore'` 只处理逐行执行失败。
+`prompt` 为 `NULL` 时，会返回保留结果类型的 `NULL`，且不访问 Provider。能够在本地完成的校验——包括类型、配置参数常量性、未知 Provider、无效 JSON Schema 或选项，以及已知不兼容的模型与 Provider 组合——会在执行前报错。模型是否存在、是否有权使用、无法在本地确定的端点能力和 Provider 请求失败，则可能要到执行期间才能发现。`on_error := 'ignore'` 只处理逐行执行失败。
 
 ## 源码与相关页面
 
